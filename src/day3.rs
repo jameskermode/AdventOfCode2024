@@ -5,16 +5,14 @@ use std::fs;
 fn part1(inputfile: &str) -> Result<i32> {
     let data = fs::read_to_string(inputfile)?;
     let re = Regex::new(r"mul\(([0-9]+),([0-9]+)\)")?;
-    let result: i32 = re
-        .captures_iter(&data)
-        .map(|caps| {
-            let (_m, [a, b]) = caps.extract();
-            let a: i32 = a.parse().unwrap();
-            let b: i32 = b.parse().unwrap();
-            a * b
-        })
-        .sum();
-    Ok(result)
+    let mut total: i32 = 0;
+    for cap in re.captures_iter(&data) {
+        let (_, [a, b]) = cap.extract();
+        let a: i32 = a.parse()?;
+        let b: i32 = b.parse()?;
+        total += a * b;
+    }
+    Ok(total)
 }
 
 fn part2(inputfile: &str) -> Result<i32> {

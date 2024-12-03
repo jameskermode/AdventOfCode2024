@@ -2,6 +2,7 @@ use std::env;
 
 mod day1;
 mod day2;
+mod day3;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -13,6 +14,7 @@ fn main() {
     let result = match day {
         1 => day1::run("input/day1.txt").unwrap(),
         2 => day2::run("input/day2.txt").unwrap(),
+        3 => day3::run("input/day3.txt").unwrap(),
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

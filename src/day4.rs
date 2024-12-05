@@ -55,8 +55,7 @@ fn part1(inputfile: &str) -> Result<i32> {
     for i in 0..lines.len() {
         for j in 0..lines[i].len() {
             if lines[i][j] as char == 'X' {
-                let c = count_words(&lines, &("XMAS".as_bytes()), i, j);
-                total += c;
+                total += count_words(&lines, &("XMAS".as_bytes()), i, j);
             }
         }
     }

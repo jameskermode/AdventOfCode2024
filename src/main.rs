@@ -5,6 +5,7 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -19,6 +20,7 @@ fn main() {
         3 => day3::run("input/day3.txt").unwrap(),
         4 => day4::run("input/day4.txt").unwrap(),
         5 => day5::run("input/day5.txt").unwrap(),
+        6 => day6::run("input/day6.txt").unwrap(),
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

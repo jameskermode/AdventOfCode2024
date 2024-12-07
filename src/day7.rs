@@ -53,7 +53,7 @@ fn part1(inputfile: &str) -> Result<i64> {
         if valid {
             sum_valid += total
         }
-        println!("{} {:?} {}", total, terms, valid);
+        // println!("{} {:?} {}", total, terms, valid);
     }
     Ok(sum_valid)
 }
@@ -66,7 +66,7 @@ fn part2(inputfile: &str) -> Result<i64> {
         if valid {
             sum_valid += total
         }
-        println!("{} {:?} {}", total, terms, valid);
+        // println!("{} {:?} {}", total, terms, valid);
     }
     Ok(sum_valid)
 }

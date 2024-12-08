@@ -7,6 +7,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -27,6 +28,7 @@ fn main() {
             println!("64 bit result {:?}", result);
             (result.0 as i32, result.1 as i32)
         }
+        8 => day8::run("input/day8.txt").unwrap(),
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

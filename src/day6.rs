@@ -15,7 +15,7 @@ fn read_grid(inputfile: &str) -> Result<Grid<char>> {
 
 fn _print_grid(grid: &Grid<char>) {
     // print!("{}[2J", 27 as char);
-    for rowidx in (0..grid.rows()).rev() {
+    for rowidx in 0..grid.rows() {
         let rowstr: String = grid.iter_row(rowidx).collect();
         println!("{rowstr}");
     }

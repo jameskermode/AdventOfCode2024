@@ -1,6 +1,9 @@
 use std::env;
 
 mod day1;
+mod day10;
+mod day12;
+mod day13;
 mod day2;
 mod day3;
 mod day4;
@@ -8,6 +11,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -29,6 +33,14 @@ fn main() {
             (result.0 as i32, result.1 as i32)
         }
         8 => day8::run("input/day8.txt").unwrap(),
+        9 => {
+            let result = day9::run("input/day9.txt").unwrap();
+            println!("64 bit result {:?}", result);
+            (result.0 as i32, result.1 as i32)
+        }
+        10 => day10::run("input/day10.txt").unwrap(),
+        12 => day12::run("input/day12.txt").unwrap(),
+        13 => day13::run("input/day13.txt").unwrap(),
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

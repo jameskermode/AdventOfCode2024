@@ -40,7 +40,11 @@ fn main() {
         }
         10 => day10::run("input/day10.txt").unwrap(),
         12 => day12::run("input/day12.txt").unwrap(),
-        13 => day13::run("input/day13.txt").unwrap(),
+        13 => {
+            let result = day13::run("input/day13.txt").unwrap();
+            println!("64 bit result {:?}", result);
+            (result.0 as i32, result.1 as i32)
+        }
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

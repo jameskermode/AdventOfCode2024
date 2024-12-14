@@ -4,6 +4,7 @@ mod day1;
 mod day10;
 mod day12;
 mod day13;
+mod day14;
 mod day2;
 mod day3;
 mod day4;
@@ -45,6 +46,7 @@ fn main() {
             println!("64 bit result {:?}", result);
             (result.0 as i32, result.1 as i32)
         }
+        14 => day14::run("input/day14.txt").unwrap(),
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

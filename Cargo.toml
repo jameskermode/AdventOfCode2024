@@ -8,5 +8,6 @@ anyhow = "1"
 grid = "0.15.0"
 indicatif = "0.17.9"
 itertools = "0.13.0"
-nalgebra = "0.33.2"
+ndarray = "0.15.6"
+ndarray-linalg = {version="0.16.0", features=["openblas-static"]}
 regex = "1.11.1"

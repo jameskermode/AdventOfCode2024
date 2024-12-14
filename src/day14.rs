@@ -141,8 +141,8 @@ fn part2(inputfile: &str, grid_size: (usize, usize)) -> Result<i32> {
         grid = calc_grid(&robots, grid_size);
 
         // look for 10 non-zero entries in a row
-        for window in grid.iter().collect::<Vec<&usize>>().windows(10) {
-            if window.iter().all(|&&x| x != 0) {
+        for window in grid.flatten().windows(10) {
+            if window.iter().all(|&x| x != 0) {
                 xmas_tree_time = time;
                 break 'outer;
             }

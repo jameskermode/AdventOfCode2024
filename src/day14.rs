@@ -39,6 +39,7 @@ fn read_input(inputfile: &str) -> Result<Vec<Robot>> {
 
 fn step(robot: &Robot, grid_size: (usize, usize)) -> Robot {
     let mut pos = (robot.pos.0 + robot.vel.0, robot.pos.1 + robot.vel.1);
+
     if pos.0 < 0 {
         pos.0 += grid_size.0 as i32;
     }
@@ -116,7 +117,7 @@ fn print_grid(grid: &Grid<usize>) {
 
 fn part1(inputfile: &str, grid_size: (usize, usize)) -> Result<i32> {
     let mut robots = read_input(inputfile)?;
-    println!("robots {:?}", robots);
+    // println!("robots {:?}", robots);
     let grid = calc_grid(&robots, grid_size);
     println!("Intial grid:");
     print_grid(&grid);
@@ -131,7 +132,7 @@ fn part1(inputfile: &str, grid_size: (usize, usize)) -> Result<i32> {
 
 fn part2(inputfile: &str, grid_size: (usize, usize)) -> Result<i32> {
     let mut robots = read_input(inputfile)?;
-    println!("robots {:?}", robots);
+    // println!("robots {:?}", robots);
     let mut grid = calc_grid(&robots, grid_size);
     println!("Intial grid:");
     print_grid(&grid);

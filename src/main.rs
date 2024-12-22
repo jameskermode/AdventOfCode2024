@@ -5,6 +5,8 @@ mod day10;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
+mod day16;
 mod day2;
 mod day3;
 mod day4;
@@ -47,6 +49,8 @@ fn main() {
             (result.0 as i32, result.1 as i32)
         }
         14 => day14::run("input/day14.txt").unwrap(),
+        15 => day15::run("input/day15.txt").unwrap(),
+        16 => day16::run("input/day16.txt").unwrap(),
         _ => {
             eprintln!("Day {day} not yet implemented.");
             std::process::exit(1);

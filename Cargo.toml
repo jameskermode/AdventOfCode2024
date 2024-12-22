@@ -10,4 +10,5 @@ indicatif = "0.17.9"
 itertools = "0.13.0"
 ndarray = "0.15.6"
 ndarray-linalg = {version="0.16.0", features=["openblas-static"]}
+petgraph = "0.6.5"
 regex = "1.11.1"

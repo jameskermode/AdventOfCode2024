@@ -1,5 +1,5 @@
 use anyhow::Result;
-use ndarray::{prelude::*, ArcArray1};
+use ndarray::prelude::*;
 use ndarray_linalg::solve::Solve;
 use regex::Regex;
 use std::fs;

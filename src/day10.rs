@@ -37,9 +37,9 @@ pub fn run(inputfile: &str) -> Result<(i32, i32)> {
     _print_grid(&grid);
     let mut trail_heads: Vec<_> = vec![];
     let mut nodes: HashMap<(usize, usize), _> = HashMap::new();
-    let mut graph = Graph::<(usize, usize, u32), (), Directed>::new();
+    let mut graph = Graph::<u32, (), Directed>::new();
     for ((i, j), &val) in grid.indexed_iter() {
-        let node = graph.add_node((i, j, val));
+        let node = graph.add_node(val);
         nodes.insert((i, j), node);
         if val == 0 {
             trail_heads.push(node);
@@ -67,7 +67,7 @@ pub fn run(inputfile: &str) -> Result<(i32, i32)> {
     for (idx, trail_head) in trail_heads.iter().enumerate() {
         let mut bfs = Bfs::new(&graph, *trail_head);
         while let Some(node) = bfs.next(&graph) {
-            if graph[node].2 == 9 {
+            if graph[node] == 9 {
                 scores[idx] += 1;
                 end_points.entry(*trail_head).or_default().insert(node);
             }

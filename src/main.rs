@@ -2,6 +2,7 @@ use std::env;
 
 mod day1;
 mod day10;
+mod day11;
 mod day12;
 mod day13;
 mod day14;
@@ -42,6 +43,7 @@ fn main() {
             (result.0 as i32, result.1 as i32)
         }
         10 => day10::run("input/day10.txt").unwrap(),
+        11 => day11::run("input/day11.txt").unwrap(),
         12 => day12::run("input/day12.txt").unwrap(),
         13 => {
             let result = day13::run("input/day13.txt").unwrap();

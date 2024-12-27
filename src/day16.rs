@@ -1,8 +1,10 @@
 use anyhow::Result;
 use grid::Grid;
-use petgraph::algo::dijkstra;
-use petgraph::graph::Graph;
+use petgraph::algo::{astar, dijkstra};
+use petgraph::graph::{Graph, NodeIndex};
+use petgraph::visit::{EdgeRef, NodeRef};
 use petgraph::Directed;
+use std::collections::HashMap;
 use std::fs;
 use std::iter::zip;
 
@@ -22,18 +24,41 @@ enum Dir {
 }
 use Dir::*;
 
+fn print_map(
+    grid: &Grid<char>,
+    graph: &Graph<(usize, usize, Option<Dir>), Dir, Directed>,
+    path: &Vec<NodeIndex>,
+) {
+    let mut grid = grid.clone();
+    for step in path {
+        let (r, c, dir) = graph[*step];
+        grid[(r, c)] = match dir {
+            Some(North) => '^',
+            Some(East) => '>',
+            Some(South) => 'v',
+            Some(West) => '<',
+            None => '.',
+        }
+    }
+    for rowidx in 0..grid.rows() {
+        let rowstr: String = grid.iter_row(rowidx).collect();
+        println!("{}", rowstr);
+    }
+}
+
 fn part1(inputfile: &str) -> Result<i32> {
     let grid = read_input(inputfile)?;
-    let mut graph = Graph::<(usize, usize), Dir, Directed>::new();
+    let mut graph = Graph::<(usize, usize, Option<Dir>), Dir, Directed>::new();
     let mut start_node: Option<_> = None;
     let mut end_node: Option<_> = None;
-    let mut nodes: Vec<_> = vec![];
+    let mut nodes: HashMap<(usize, usize), _> = HashMap::new();
     for ((r, c), &val) in grid.indexed_iter() {
-        nodes.push(graph.add_node((r, c)));
+        let node = graph.add_node((r, c, None));
+        nodes.insert((r, c), node);
         match val {
             '#' => continue,
-            'S' => start_node = Some(nodes.last().unwrap().clone()),
-            'E' => end_node = Some(nodes.last().unwrap().clone()),
+            'S' => start_node = Some(node),
+            'E' => end_node = Some(node),
             _ => (),
         }
     }
@@ -42,63 +67,63 @@ fn part1(inputfile: &str) -> Result<i32> {
         if val == '#' {
             continue;
         }
-        let n = nodes.iter().position(|&idx| graph[idx] == (r, c)).unwrap();
+        let n = nodes[&(r, c)];
         let r: i32 = r as i32;
         let c: i32 = c as i32;
         for (dir, (i, j)) in zip(
-            [North, South, West, East],
+            [South, North, East, West],
             [(r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)],
         ) {
             let i = i as usize;
             let j = j as usize;
             if let Some('.') | Some('S') | Some('E') = grid.get(i, j) {
-                let m = nodes.iter().position(|&idx| graph[idx] == (i, j)).unwrap();
-                graph.add_edge(nodes[n], nodes[m], dir);
+                let m = nodes[&(i, j)];
+                graph.add_edge(n, m, dir);
             }
         }
     }
+
     // println!("{:#?}", graph);
-    let mut current_dir = East;
-    let path = dijkstra(&graph, start_node.unwrap(), end_node, |edge| {
-        let new_dir = *edge.weight();
-        let cost = match current_dir {
-            North => match new_dir {
-                North => 1,
-                East => 1000,
-                West => 1000,
-                South => 2000,
-            },
-            East => match new_dir {
-                East => 1,
-                North => 1000,
-                South => 1000,
-                West => 2000,
-            },
-            South => match new_dir {
-                South => 1,
-                East => 1000,
-                West => 1000,
-                North => 2000,
-            },
-            West => match new_dir {
-                West => 1,
-                North => 1000,
-                South => 1000,
-                East => 2000,
-            },
-        };
-        current_dir = new_dir;
-        cost
-    });
+    let mut dir_graph = graph.clone();
+    dir_graph[start_node.unwrap()].2 = Some(East);
+    let Some((score, path)) = astar(
+        &graph,
+        start_node.unwrap(),
+        |n| n == end_node.unwrap(),
+        |edge| {
+            let new_dir = *edge.weight();
+            println!("edge {:?}", edge);
+            // println!("prev_directions {:?}", prev_directions);
+            let current_dir = dir_graph[edge.source()].2.unwrap();
+            println!("{:?}", current_dir);
+            let mut cost = 1;
+            if current_dir != new_dir {
+                cost += 1000;
+            }
+            for e in graph.edges(edge.target()) {
+                // if e == edge {
+                //     continue;
+                // }
+                dir_graph[e.source()].2 = Some(new_dir);
+                // prev_directions.insert(e.source(), new_dir);
+            }
+            cost
+        },
+        |_| 0,
+    ) else {
+        panic!("no path found")
+    };
     println!("{:#?}", path);
-    println!("{:?}, {}", end_node.unwrap(), path[&end_node.unwrap()]);
-    Ok(path[&end_node.unwrap()])
+    print_map(&grid, &dir_graph, &path);
+    // println!("{:?}, {}", end_node.unwrap(), path[&end_node.unwrap()]);
+    Ok(score) //path[&end_node.unwrap()])
 }
 
 fn part2(inputfile: &str) -> Result<i32> {
     // let ... = read_input(inputfile)?;
     // Ok(...)
-    todo!()
+    // todo!()
+    Ok(0)
 }
 
 #[test]
@@ -108,7 +133,7 @@ fn test_part1_1() {
 
 #[test]
 fn test_part1_2() {
-    assert_eq!(part1("./input/day16_test_2.txt").unwrap(), 11);
+    assert_eq!(part1("./input/day16_test_2.txt").unwrap(), 11048);
 }
 
 #[test]

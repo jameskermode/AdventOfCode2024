@@ -1,5 +1,6 @@
 use anyhow::Result;
 use grid::Grid;
+use indicatif::ProgressBar;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::iter::zip;
@@ -13,21 +14,17 @@ fn read_input(inputfile: &str) -> Result<Grid<char>> {
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, PartialOrd, Ord, Hash)]
 enum Dir {
-    North = 0,
-    East = 270,
-    South = 180,
-    West = 90,
+    North,
+    East,
+    South,
+    West,
 }
 use Dir::*;
-
-fn angle(dir1: Dir, dir2: Dir) -> i32 {
-    (dir1 as i32) - (dir2 as i32)
-}
 
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct State {
     cost: usize,
     position: (usize, usize),
@@ -77,6 +74,7 @@ fn shortest_path(
     start: (usize, usize),
     start_dir: Dir,
     goal: (usize, usize),
+    goal_dir: Dir,
 ) -> Option<State> {
     // dist[node] = current shortest distance from `start` to `node`
     let mut dist: Vec<_> = (0..adj_list.len()).map(|_| usize::MAX).collect();
@@ -103,7 +101,7 @@ fn shortest_path(
         // );
         let node_index = node_map[&(position.0, position.1, direction)];
         // Alternatively we could have continued to find all shortest paths
-        if position == goal {
+        if position == goal && direction == goal_dir {
             return Some(State {
                 cost,
                 position,
@@ -180,7 +178,10 @@ fn make_graph(grid: &Grid<char>) -> Map {
             ) {
                 if let Some('.') | Some('S') | Some('E') = grid.get(i, j) {
                     let m = node_map[&(i, j, next_dir)];
-                    let c = (1 + angle(current_dir, next_dir).abs() * 1000 / 90) as usize;
+                    let mut c = 1;
+                    if current_dir != next_dir {
+                        c += 1000
+                    }
                     // if (r, c) == start_node.unwrap() {
                     // println!("adding edge {n}-{m} ({r},{c})->({i},{j}) current_dir {current_dir:?} {next_dir:?}");
                     // }
@@ -201,58 +202,89 @@ fn make_graph(grid: &Grid<char>) -> Map {
 fn part1(inputfile: &str) -> Result<usize> {
     let grid = read_input(inputfile)?;
     let map = make_graph(&grid);
-    let final_state = shortest_path(
-        &map.nodes,
-        &map.node_map,
-        &map.edges,
-        map.start,
-        East,
-        map.end,
-    )
-    .unwrap();
-    Ok(final_state.cost)
+    let final_states: Vec<_> = [North, East, South, West]
+        .iter()
+        .filter_map(|&dir| {
+            shortest_path(
+                &map.nodes,
+                &map.node_map,
+                &map.edges,
+                map.start,
+                East,
+                map.end,
+                dir,
+            )
+        })
+        .collect();
+    println!("final_states {:#?}", final_states);
+    let min_cost = final_states.iter().map(|state| state.cost).min().unwrap();
+    Ok(min_cost)
 }
 
 fn part2(inputfile: &str) -> Result<usize> {
     let grid = read_input(inputfile)?;
     let map = make_graph(&grid);
-    let final_state = shortest_path(
-        &map.nodes,
-        &map.node_map,
-        &map.edges,
-        map.start,
-        East,
-        map.end,
-    )
-    .unwrap();
-    println!("min cost {}", final_state.cost);
+    let directions = [North, East, South, West];
+    let final_states: Vec<_> = directions
+        .iter()
+        .filter_map(|&dir| {
+            shortest_path(
+                &map.nodes,
+                &map.node_map,
+                &map.edges,
+                map.start,
+                East,
+                map.end,
+                dir,
+            )
+        })
+        .collect();
+    let min_cost = final_states.iter().map(|state| state.cost).min().unwrap();
+    println!("{:#?}", final_states);
+    let final_dir = final_states
+        .iter()
+        .filter_map(|state| {
+            if state.cost == min_cost {
+                Some(state.direction)
+            } else {
+                None
+            }
+        })
+        .min()
+        .unwrap();
     let mut shortest_path_tiles = HashSet::<(usize, usize)>::new();
 
+    let bar = ProgressBar::new((grid.rows() * grid.cols()) as u64);
     for ((r, c), &val) in grid.indexed_iter() {
+        bar.inc(1);
         if val != '.' && val != 'S' && val != 'E' {
             continue;
         }
-        let state1 = shortest_path(
-            &map.nodes,
-            &map.node_map,
-            &map.edges,
-            map.start,
-            East,
-            (r, c),
-        )
-        .unwrap();
-        let state2 = shortest_path(
-            &map.nodes,
-            &map.node_map,
-            &map.edges,
-            (r, c),
-            final_state.direction,
-            map.end,
-        )
-        .unwrap();
-        // println!("{:?} {}", (r, c), state1.cost + state2.cost);
-        if state1.cost + state2.cost <= final_state.cost {
-            shortest_path_tiles.insert((r, c));
+        for dir in directions {
+            let state1 = shortest_path(
+                &map.nodes,
+                &map.node_map,
+                &map.edges,
+                map.start,
+                East,
+                (r, c),
+                dir,
+            );
+            let state2 = shortest_path(
+                &map.nodes,
+                &map.node_map,
+                &map.edges,
+                (r, c),
+                dir,
+                map.end,
+                final_dir,
+            );
+            // println!("{:?} {}", (r, c), state1.cost + state2.cost);
+            if !state1.is_none() && !state2.is_none() {
+                if state1.unwrap().cost + state2.unwrap().cost == min_cost {
+                    shortest_path_tiles.insert((r, c));
+                }
+            }
         }
     }
 

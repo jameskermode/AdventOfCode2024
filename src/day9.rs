@@ -53,9 +53,7 @@ fn compress(full_map: &mut Vec<Option<usize>>) {
 }
 
 fn compress_files(file_map: &Vec<Disk>, block_map: &mut Vec<Option<usize>>) {
-    let rev_map: Vec<_> = file_map.iter().rev().collect();
-
-    for file in rev_map {
+    for file in file_map.iter().rev() {
         if let Disk::File((id, length)) = file {
             let length = *length;
             let file_start = block_map
@@ -79,11 +77,13 @@ fn compress_files(file_map: &Vec<Disk>, block_map: &mut Vec<Option<usize>>) {
                     let space_start = window[0].0;
                     // println!("moving {:?}", &block_map[file_start..file_start + length]);
                     for i in 0..length {
-                        block_map[space_start + i] = block_map[file_start + i];
+                        block_map.swap(space_start + i, file_start + i);
                     }
-                    for i in 0..length {
-                        block_map[file_start + i] = None;
-                    }
+                    // alternative: doesn't seem to be faster!
+                    // let (left, right) = block_map.split_at_mut(space_start + length);
+                    // left[space_start..space_start + length].swap_with_slice(
+                    // &mut right[file_start - space_start - length..file_start - space_start],
+                    // );
                     break;
                 }
             }

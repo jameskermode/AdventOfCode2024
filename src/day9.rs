@@ -69,8 +69,7 @@ fn compress_files(file_map: &Vec<Disk>, block_map: &mut Vec<Option<usize>>) {
                 })
                 .unwrap();
 
-            for window in block_map
-                .clone()
+            for window in block_map[..file_start]
                 .iter()
                 .enumerate()
                 .collect::<Vec<_>>()
@@ -78,9 +77,6 @@ fn compress_files(file_map: &Vec<Disk>, block_map: &mut Vec<Option<usize>>) {
             {
                 if window.iter().all(|(_idx, block)| block.is_none()) {
                     let space_start = window[0].0;
-                    if space_start > file_start {
-                        break;
-                    }
                     // println!("moving {:?}", &block_map[file_start..file_start + length]);
                     for i in 0..length {
                         block_map[space_start + i] = block_map[file_start + i];

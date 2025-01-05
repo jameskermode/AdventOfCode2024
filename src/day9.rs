@@ -1,7 +1,6 @@
 use anyhow::Result;
 use std::fs;
 use std::iter;
-use std::iter::zip;
 
 enum Disk {
     File((usize, usize)),
@@ -53,96 +52,48 @@ fn compress(full_map: &mut Vec<Option<usize>>) {
     }
 }
 
-fn compress_files(block_map: &mut Vec<Option<usize>>) {
-    let mut file_end = block_map.len() - 1;
-    let mut moved_files: Vec<usize> = vec![];
+fn compress_files(file_map: &Vec<Disk>, block_map: &mut Vec<Option<usize>>) {
+    let rev_map: Vec<_> = file_map.iter().rev().collect();
 
-    loop {
-        // for step in 0..10 {
-        while let None = block_map[file_end] {
-            if file_end == 0 {
-                break;
-            }
-            file_end -= 1;
-        }
-        // println!("found file end {file_end}");
-        // file_end += 1;
-        let mut file_start = file_end;
-        while block_map[file_start] == block_map[file_end] {
-            if file_start == 0 {
-                break;
-            }
-            file_start -= 1;
-        }
-        // println!("found file start {file_start}");
-        if file_start == 0 {
-            break;
-        }
-        // file_start += 1;
-        if moved_files.contains(&block_map[file_start + 1].unwrap()) {
-            file_end -= 1;
-            continue;
-        }
-        let file_length = file_end - file_start;
-        // println!("start {file_start} end {file_end} length {file_length}");
+    for file in rev_map {
+        if let Disk::File((id, length)) = file {
+            let length = *length;
+            let file_start = block_map
+                .iter()
+                .position(|block| {
+                    if let Some(file_id) = block {
+                        file_id == id
+                    } else {
+                        false
+                    }
+                })
+                .unwrap();
 
-        let mut space_start = 0;
-        let space = loop {
-            while let Some(_) = block_map[space_start] {
-                space_start += 1;
-            }
-            // println!("{space_start}");
-            if space_start == block_map.len() - 1 {
-                break None;
-            }
-            let mut space_end = space_start;
-            while let None = block_map[space_end] {
-                if space_end == block_map.len() - 1 {
+            for window in block_map
+                .clone()
+                .iter()
+                .enumerate()
+                .collect::<Vec<_>>()
+                .windows(length)
+            {
+                if window.iter().all(|(_idx, block)| block.is_none()) {
+                    let space_start = window[0].0;
+                    if space_start > file_start {
+                        break;
+                    }
+                    // println!("moving {:?}", &block_map[file_start..file_start + length]);
+                    for i in 0..length {
+                        block_map[space_start + i] = block_map[file_start + i];
+                    }
+                    for i in 0..length {
+                        block_map[file_start + i] = None;
+                    }
                     break;
                 }
-                space_end += 1;
             }
-            if space_end - space_start >= file_length {
-                break Some((space_start, space_end));
-            } else {
-                space_start += 1;
-            }
-        };
-        // println!("space = {:?}", space);
-        match space {
-            Some((start, end)) => {
-                if start < file_start + 1 {
-                    moved_files.push(block_map[file_start + 1].unwrap());
-                    for (src, dest) in zip(start..end, file_start + 1..file_end + 1) {
-                        // println!("swap {src} {dest}");
-                        block_map.swap(src, dest);
-                        // print_map(&block_map);
-                    }
-                } else {
-                    println!(
-                        "can't move file {} left",
-                        block_map[file_start + 1].unwrap()
-                    );
-                    file_end = file_start - 1;
-                    continue;
-                }
-            }
-            None => {
-                println!(
-                    "no space big enough for file {}",
-                    block_map[file_start + 1].unwrap()
-                );
-                file_end = file_start - 1;
-                continue;
-            }
-        };
-        //     print_map(&block_map);
+            // print_map(block_map);
+        }
     }
-
-    // while let Disk::Empty(length) = block_map[last_file] {
-    // last_file -= 1;
-    // }
-    // if let Disk::File((id, length)) = block_map[last_file] {}
 }
 
 fn checksum(full_map: &Vec<Option<usize>>) -> usize {
@@ -155,7 +106,7 @@ fn checksum(full_map: &Vec<Option<usize>>) -> usize {
     sum
 }
 
-fn print_map(full_map: &Vec<Option<usize>>) {
+fn _print_map(full_map: &Vec<Option<usize>>) {
     for entry in full_map {
         match entry {
             Some(id) => print!("{}", id),
@@ -168,18 +119,18 @@ fn print_map(full_map: &Vec<Option<usize>>) {
 fn part1(inputfile: &str) -> Result<usize> {
     let file_map = read_input(inputfile)?;
     let mut block_map = expand_blocks(&file_map);
-    print_map(&block_map);
+    // _print_map(&block_map);
     compress(&mut block_map);
-    print_map(&block_map);
+    // _print_map(&block_map);
     Ok(checksum(&block_map))
 }
 
 fn part2(inputfile: &str) -> Result<usize> {
     let file_map = read_input(inputfile)?;
     let mut block_map = expand_blocks(&file_map);
-    print_map(&block_map);
-    compress_files(&mut block_map);
-    print_map(&block_map);
+    // _print_map(&block_map);
+    compress_files(&file_map, &mut block_map);
+    // _print_map(&block_map);
     Ok(checksum(&block_map))
 }
 

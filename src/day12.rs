@@ -82,14 +82,6 @@ fn neighbours(row: usize, col: usize) -> [(usize, usize); 4] {
     ]
 }
 
-fn out_neighbours(grid: &Grid<char>, row: usize, col: usize) -> Vec<bool> {
-    let val = grid[(row, col)];
-    neighbours(row, col)
-        .iter()
-        .map(|&idx| *grid.get(idx.0, idx.1).unwrap_or(&'#') != val)
-        .collect()
-}
-
 fn perimeter(grid: &Grid<char>, marker: char) -> usize {
     grid.indexed_iter()
         .filter_map(|((r, c), &val)| {
